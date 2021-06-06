@@ -24,6 +24,11 @@ gen rg = 1 if (region == 138 | region == 140 | region == 141)
 
 replace rg = 0 if rg == .
 
+#### Тип местности (1 - городская, 2 - сельская)
+gen st = 1 if (status == 1 | status == 2)
+
+replace st = 2 if (status == 3 | status == 4)
+
 #### Удельный доход = семейный доход за месяц/кол-во членов семьи
 gen income = wf14/sqrt(w_nfm)
 
@@ -41,9 +46,95 @@ gen pension = 1 if ((wh5 == 1 & w_age >= 60) | (wh5 == 2 & w_age >= 55))
 
 replace pension = 0 if pension == .
 
-### ТАБЛИЦА ОПИСАТЕЛЬНЫХ СТАТИСТИК
+#### Возрастные группы
+gen age_group = 1 if (w_age >= 18 & w_age <= 25)
 
+replace age_group = 2 if (w_age >= 26 & w_age <= 35)
 
+replace age_group = 3 if (w_age >= 36 & w_age <= 45)
+
+replace age_group = 4 if (w_age >= 46 & w_age <= 55)
+
+replace age_group = 5 if (w_age >= 56 & w_age <= 65)
+
+replace age_group = 6 if (w_age >= 66 & w_age <= 75)
+
+replace age_group =7 if w_age >= 76
+
+### ОПИСАТЕЛЬНЫЕ СТАТИСТИКИ
+#### Социально-экономические характеристики
+sum w_age log_income log_wj60, detail
+
+sum w_age log_income log_wj60 if wh5 == 1, detail
+
+sum w_age log_income log_wj60 if wh5 == 2, detail
+
+tab age_group
+
+tab age_group if wh5 == 1
+
+tab age_group if wh5 == 2
+
+tab pension
+
+tab pension if wh5 == 1
+
+tab pension if wh5 == 2
+
+tab marst
+
+tab marst if wh5 == 1
+
+tab marst if wh5 == 2
+
+tab rg
+
+tab rg if wh5 == 1
+
+tab rg if wh5 == 2
+
+tab st
+
+tab st if wh5 == 1
+
+tab st if wh5 == 2
+
+#### Характеристики КЖСЗ
+tab wm183
+
+tab wm183 if wh5 == 1
+
+tab wm183 if wh5 == 2
+
+tab wm184
+
+tab wm184 if wh5 == 1
+
+tab wm184 if wh5 == 2
+
+tab wm185
+
+tab wm185 if wh5 == 1
+
+tab wm185 if wh5 == 2
+
+tab wm186
+
+tab wm186 if wh5 == 1
+
+tab wm186 if wh5 == 2
+
+tab wm187
+
+tab wm187 if wh5 == 1
+
+tab wm187 if wh5 == 2
+
+sum wm188
+
+sum wm188 if wh5 == 1, detail
+
+sum wm188 if wh5 == 2, detail
 
 ### МЕЖГРУППОВЫЕ РАЗЛИЧИЯ
 
@@ -54,12 +145,24 @@ ttest unhealth if wh5 == 1, by (marst)
 
 ttest unhealth if wh5 == 2, by (marst)
 
+ksmirnov unhealth, by(marst) exact
+
+ksmirnov unhealth if wh5 == 1, by(marst) exact
+
+ksmirnov unhealth if wh5 == 2, by(marst) exact
+
 #### Высшее образование
 ttest unhealth, by (high_educ)
 
 ttest unhealth if wh5 == 1, by (high_educ)
 
 ttest unhealth if wh5 == 2, by (high_educ)
+
+ksmirnov unhealth, by(high_educ) exact
+
+ksmirnov unhealth if wh5 == 1, by(high_educ) exact
+
+ksmirnov unhealth if wh5 == 2, by(high_educ) exact
 
 #### Пенсионный возраст
 ttest unhealth, by (pension)
@@ -68,12 +171,50 @@ ttest unhealth if wh5 == 1, by (pension)
 
 ttest unhealth if wh5 == 2, by (pension)
 
+ksmirnov unhealth, by(pension) exact
+
+ksmirnov unhealth if wh5 == 1, by(pension) exact
+
+ksmirnov unhealth if wh5 == 2, by(pension) exact
+
 #### Регион
 ttest unhealth, by (rg)
 
 ttest unhealth if wh5 == 1, by (rg)
 
 ttest unhealth if wh5 == 2, by (rg)
+
+ksmirnov unhealth, by(rg) exact
+
+ksmirnov unhealth if wh5 == 1, by(rg) exact
+
+ksmirnov unhealth if wh5 == 2, by(rg) exact
+
+#### Тип местности 
+ttest unhealth, by (st)
+
+ttest unhealth if wh5 == 1, by (st)
+
+ttest unhealth if wh5 == 2, by (st)
+
+ksmirnov unhealth, by(st) exact
+
+ksmirnov unhealth if wh5 == 1, by(st) exact
+
+ksmirnov unhealth if wh5 == 2, by(st) exact
+
+#### Возрастные группы
+oneway unhealth age_group, sidak bonferroni scheffe
+
+oneway unhealth age_group if wh5 == 1, sidak bonferroni scheffe
+
+oneway unhealth age_group if wh5 == 2, sidak bonferroni scheffe
+
+kwallis unhealth, by(age_group)
+
+kwallis unhealth if wh5 == 1, by(age_group)
+
+kwallis unhealth if wh5 == 2, by(age_group)
 
 #### Квинтильные группы индивидуального дохода
 centile log_wj60, centile (20, 40, 60, 80)
@@ -98,6 +239,8 @@ replace quantile_wj60 = 5 if log_wj60 > wj60_80
 
 oneway unhealth quantile_wj60, tab
 
+kwallis unhealth, by(quantile_wj60)
+
 #### Квинтильные группы удельного дохода
 centile log_income, centile (20, 40, 60, 80)
 
@@ -120,6 +263,8 @@ replace quantile_income = 4 if (log_income > income_60 & log_income <= income_80
 replace quantile_income = 5 if log_income > income_80
 
 oneway unhealth quantile_income, tab
+
+kwallis unhealth, by(quantile_income)
 
 ### ЛОГИСТИЧЕСКАЯ РЕГРЕССИЯ НА КОМПОНЕНТЫ КЖСЗ
 
